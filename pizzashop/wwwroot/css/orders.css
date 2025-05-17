@@ -1,0 +1,26 @@
+.sort-icon {
+    display: inline-block;
+    margin-left: 5px;
+    width: 10px;
+    height: 10px;
+    background-size: contain;
+}
+
+/* .fullscreen-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: none;  
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+} */
+
+
+
+
+
