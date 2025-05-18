@@ -21,23 +21,26 @@ public class JwtService : IJwtService
 
     }
 
-    public async Task<string> GenerateJwtToken(string email, int roleId)
+    public async Task<string> GenerateJwtTokenAsync(string email, int roleId)
     {
-        string? Rolename = await _userRepository.GetUserRole(roleId);
-    
+        string? Rolename = await _userRepository.GetUserRoleAsync(roleId);
+
+        int UserId = await _userRepository.GetUserIdByEmailAsync(email);
+
         Claim[]? claims = new[]
         {
                 new Claim(ClaimTypes.Email, email),
                 new Claim(ClaimTypes.Role, Rolename),
-        
+                new Claim("UserId", UserId.ToString())
+
         };
         Console.WriteLine($"🔹 JWT Claims: Email={email}, RoleId={Rolename}");
 
 
-        SymmetricSecurityKey? key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-        SigningCredentials? credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        SymmetricSecurityKey? key = new(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+        SigningCredentials? credentials = new(key, SecurityAlgorithms.HmacSha256);
 
-        JwtSecurityToken? token = new JwtSecurityToken(
+        JwtSecurityToken? token = new(
             _configuration["Jwt:Issuer"],
             _configuration["Jwt:Audience"],
             claims,

@@ -406,7 +406,7 @@ public class MenuRepository : IMenuRepository
         }
     }
 
-    public async Task<bool> UpdateModifierGroup(ModifierGroupViewModel model)
+    public async Task<bool> UpdateModifierGroup(ModifierGroupViewModel model, int UserId)
     {
         try
         {
@@ -418,6 +418,7 @@ public class MenuRepository : IMenuRepository
             {
                 existingGroup.Name = model.Name;
                 existingGroup.Description = model.Description;
+                existingGroup.Updatedby = UserId;
 
                 List<int>? existingModifierIds = existingGroup.Modifiergroupmodifiers
                     .Select(m => m.Modifierid)

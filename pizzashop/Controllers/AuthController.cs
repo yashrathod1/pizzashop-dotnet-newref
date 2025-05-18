@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using pizzashop_repository.ViewModels;
@@ -44,7 +45,7 @@ public class AuthController : Controller
         {
             if (ModelState.IsValid)
             {
-                var user = _useService.AuthenicateUser(model.Email, model.Password);
+                var user = await _useService.AuthenicateUserAsync(model.Email, model.Password);
                 if (user == null)
                 {
                     TempData["error"] = "Invalid Email or Password";
@@ -68,7 +69,7 @@ public class AuthController : Controller
                 Response.Cookies.Append("Username", user.Username, coockieopt);
                 Response.Cookies.Append("ProfileImgPath", string.IsNullOrEmpty(user.Profileimagepath) ? "/images/Default_pfp.svg.png" : user.Profileimagepath, coockieopt);
 
-                string token = await _useService.GenerateJwttoken(user.Email, user.Roleid);
+                string token = await _useService.GenerateJwttokenAsync(user.Email, user.Roleid);
 
                 Response.Cookies.Append("AuthToken", token, new CookieOptions
                 {
@@ -76,7 +77,7 @@ public class AuthController : Controller
                     Secure = true,
                     Expires = DateTime.UtcNow.AddHours(24)
                 });
- 
+
                 TempData["success"] = "Login Successful";
 
                 return RedirectToAction("Index", "Dashboard");
@@ -93,17 +94,17 @@ public class AuthController : Controller
 
 
     [HttpGet]
-    public IActionResult ForgotPassword(string? email)
+    public  IActionResult ForgotPassword(string? email)
     {
         try
         {
-            if (!string.IsNullOrEmpty(email))
+            if (string.IsNullOrEmpty(email))
             {
-                ViewData["Email"] = email;
+                ViewData["Email"] = "";
             }
             else
             {
-                ViewData["Email"] = "";
+                ViewData["Email"] = email;
             }
             return View();
         }
@@ -116,7 +117,7 @@ public class AuthController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult ForgotPassword(ForgotViewModel objUser)
+    public async Task<IActionResult> ForgotPassword(ForgotViewModel objUser)
     {
         try
         {
@@ -125,7 +126,7 @@ public class AuthController : Controller
                 return View(objUser);
             }
 
-            var user = _useService.GetUserByEmail(objUser.Email);
+            var user = await _useService.GetUserByEmailAsync(objUser.Email);
 
             if (user == null)
             {
@@ -133,7 +134,7 @@ public class AuthController : Controller
                 return View(objUser);
             }
 
-            string resetToken = _useService.GeneratePasswordResetToken(user.Email);
+            string? resetToken = await _useService.GeneratePasswordResetTokenAsync(user.Email);
             string filePath = @"C:/Users/pci100/Desktop/3tiertryerror/pizzashop/Template/EmailTemplate.html";
             string emailBody = System.IO.File.ReadAllText(filePath);
 
@@ -141,7 +142,7 @@ public class AuthController : Controller
             emailBody = emailBody.Replace("{ResetLink}", resetLink);
 
             string subject = "Reset Password";
-            _emailSender.SendEmailAsync(objUser.Email, subject, emailBody);
+            await _emailSender.SendEmailAsync(objUser.Email, subject, emailBody);
 
             TempData["success"] = "Password reset instructions have been sent to your email.";
 
@@ -179,7 +180,7 @@ public class AuthController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult ResetPassword(ResetPasswordViewModel model)
+    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
     {
         try
         {
@@ -188,13 +189,15 @@ public class AuthController : Controller
                 return View(model);
             }
 
-            if (_useService.ResetPassword(model.Token, model.NewPassword, model.ConfirmPassword, out string message))
+            var result = await _useService.ResetPasswordAsync(model.Token, model.NewPassword, model.ConfirmPassword);
+
+            if (result.Success)
             {
-                TempData["success"] = "Password Successfully Reset";
+                TempData["success"] = result.Message;
                 return RedirectToAction("Login", "Auth");
             }
 
-            ModelState.AddModelError(string.Empty, message);
+            ModelState.AddModelError(string.Empty, result.Message);
             return View(model);
         }
         catch
@@ -203,7 +206,6 @@ public class AuthController : Controller
             return View(model);
         }
     }
-
 
     [CustomAuthorize("RoleAndPermission", "CanView")]
     [HttpGet]

@@ -69,7 +69,7 @@ public class WaitingListService : IWaitingListService
         return viewModel;
     }
 
-    public async Task<(bool IsSuccess, string Message)> AddWaitingTokenInWaitingListAsync(WaitingTokenViewModel waitingTokenVm)
+    public async Task<(bool IsSuccess, string Message)> AddWaitingTokenInWaitingListAsync(WaitingTokenViewModel waitingTokenVm, int UserId)
     {
         Customer? existingCustomer = await _waitingListRepository.GetCustomerByEmail(waitingTokenVm.Email);
 
@@ -88,7 +88,8 @@ public class WaitingListService : IWaitingListService
                 Name = waitingTokenVm.Name,
                 Email = waitingTokenVm.Email,
                 PhoneNumber = waitingTokenVm.MobileNo,
-                NoOfPerson = waitingTokenVm.NoOfPerson
+                NoOfPerson = waitingTokenVm.NoOfPerson,
+                Createdby = UserId
             };
 
             await _waitingListRepository.AddCustomer(customer);
@@ -109,7 +110,8 @@ public class WaitingListService : IWaitingListService
             CustomerId = customer.Id,
             NoOfPersons = waitingTokenVm.NoOfPerson,
             SectionId = waitingTokenVm.SectionId,
-            Updatedat = DateTime.Now
+            Updatedat = DateTime.Now,
+            Createdby = UserId
         };
 
          await _waitingListRepository.AddWaitingToken(waitingToken);
@@ -158,7 +160,7 @@ public class WaitingListService : IWaitingListService
         };
     }
 
-    public async Task<(bool success, string message)> EditWaitingTokenAsync(WaitingTokenViewModel model)
+    public async Task<(bool success, string message)> EditWaitingTokenAsync(WaitingTokenViewModel model, int UserId)
     {
         try
         {
@@ -184,6 +186,7 @@ public class WaitingListService : IWaitingListService
             waitingToken.NoOfPersons = model.NoOfPerson;
             waitingToken.Customer.NoOfPerson = model.NoOfPerson;
             waitingToken.Customer.Email = model.Email;
+            waitingToken.Customer.Updatedby = UserId;
 
             await _waitingListRepository.UpdateAsync(waitingToken);
 
@@ -234,7 +237,7 @@ public class WaitingListService : IWaitingListService
         }).ToList();
     }
 
-    public async Task<AssignTableResultViewModel> AssignTablesToCustomerAsync(AssignTableInWaitingTokenViewModel model)
+    public async Task<AssignTableResultViewModel> AssignTablesToCustomerAsync(AssignTableInWaitingTokenViewModel model, int UserId)
     {
         List<Table>? selectedTables = await _waitingListRepository.GetTablesByIdsAsync(model.SelectedTables);
         int totalCapacity = selectedTables.Sum(t => t.Capacity);
@@ -254,7 +257,8 @@ public class WaitingListService : IWaitingListService
         {
             Customerid = customer.Id,
             Status = "Pending",
-            Createdat = DateTime.Now
+            Createdat = DateTime.Now,
+            Createdby = UserId
         };
 
         await _waitingListRepository.CreateOrderAsync(order);
@@ -297,6 +301,8 @@ public class WaitingListService : IWaitingListService
         if (waitingCustomer != null)
         {
             waitingCustomer.IsAssign = true;
+            waitingCustomer.Updatedby = UserId;
+            waitingCustomer.Updatedat = DateTime.Now;
             
             await _waitingListRepository.UpdateWaitingCustomerAsync(waitingCustomer);
         }

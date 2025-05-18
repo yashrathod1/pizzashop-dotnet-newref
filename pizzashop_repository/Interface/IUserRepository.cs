@@ -5,30 +5,32 @@ namespace pizzashop_repository.Interface;
 
 public interface IUserRepository
 {
-    User? GetUserByEmail(string email);
+    Task<User?> GetUserByEmailAsync(string email);
 
-    User? GetUserByUsername(string username);
+    Task <User?> GetUserByUsernameAsync(string username);
 
-    User GetUserByResetToken(string token);
+    Task<User?> GetUserByResetTokenAsync(string token);
 
-    bool UpdateUser(User user);
+    Task<bool> UpdateUserAsync(User user);
 
-    Task<string?> GetUserRole(int roleId);
+    Task<string?> GetUserRoleAsync(int roleId);
 
+    Task<int> GetUserIdByEmailAsync(string Email);
 
-    User? GetUserByEmailAndRole(string email);
+    Task<User?> GetUserByEmailAndRoleAsync(string email);
 
     Task<IQueryable<User>> GetAllUsersWithRolesAsync();
-    User GetUserById(int id);
+    Task<User?> GetUserByIdAsync(int id);
 
-    void SoftDeleteUser(User user);
+    Task SoftDeleteUserAsync(User user);
 
-    List<Role> GetRoles();
-    Role GetRoleById(int id);
+    Task<List<Role>> GetRolesAsync();
 
-    void AddUser(User user);
+    Task<Role> GetRoleByIdAsync(int id);
 
-    User? GetUserByIdAndRole(int id);
+    Task AddUserAsync(User user);
+
+    Task<User?> GetUserByIdAndRoleAsync(int id);
 
     Task<Role?> GetRoleByNameAsync(string roleName);
 

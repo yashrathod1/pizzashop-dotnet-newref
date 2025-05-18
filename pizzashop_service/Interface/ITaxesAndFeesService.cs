@@ -6,11 +6,11 @@ public interface ITaxesAndFeesService
 {
     Task<PagedResult<TaxsAndFeesViewModel>> GetTaxesAndFeesAsync(PaginationViewModel model);
 
-    Task<bool> AddTaxAsync(TaxsAndFeesViewModel model);
+    Task<bool> AddTaxAsync(TaxsAndFeesViewModel model, int UserId);
 
     Task<TaxsAndFeesViewModel> GetTaxByIdAsync(int id);
 
     Task<bool> SoftDeleteTaxAsync(int id);
 
-    Task<bool> UpdateTaxAsync(TaxsAndFeesViewModel model);
+    Task<bool> UpdateTaxAsync(TaxsAndFeesViewModel model, int UserId);
 }

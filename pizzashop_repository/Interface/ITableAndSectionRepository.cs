@@ -16,7 +16,7 @@ public interface ITableAndSectionRepository
 
     Task<SectionsViewModal> GetSectionByIdAsync(int id);
 
-    Task<bool> UpdateSectionAsync(SectionsViewModal section);
+    Task<bool> UpdateSectionAsync(SectionsViewModal section, int UserId);
 
     Task<bool> SoftDeleteSectionAsync(int id);
 

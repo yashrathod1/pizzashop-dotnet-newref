@@ -16,11 +16,11 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
-    public User? GetUserByEmail(string email)
+    public async Task<User?> GetUserByEmailAsync(string email)
     {
         try
         {
-            return _context.Users.FirstOrDefault(u => u.Email == email);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
         catch (Exception ex)
         {
@@ -29,11 +29,11 @@ public class UserRepository : IUserRepository
 
     }
 
-    public User? GetUserByUsername(string username)
+    public async Task<User?> GetUserByUsernameAsync(string username)
     {
         try
         {
-            return _context.Users.FirstOrDefault(u => u.Username == username);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
         }
         catch (Exception ex)
         {
@@ -41,11 +41,11 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public User? GetUserByResetToken(string token)
+    public async Task<User?> GetUserByResetTokenAsync(string token)
     {
         try
         {
-            return _context.Users.FirstOrDefault(u => u.PasswordResetToken == token);
+            return await _context.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == token);
         }
         catch (Exception ex)
         {
@@ -55,12 +55,12 @@ public class UserRepository : IUserRepository
     }
 
 
-    public bool UpdateUser(User user)
+    public async Task<bool> UpdateUserAsync(User user)
     {
         try
         {
             _context.Users.Update(user);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -69,7 +69,7 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public async Task<string?> GetUserRole(int roleId)
+    public async Task<string?> GetUserRoleAsync(int roleId)
     {
         try
         {
@@ -81,13 +81,25 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public User? GetUserByEmailAndRole(string email)
+    public async Task<int> GetUserIdByEmailAsync(string Email)
     {
         try
         {
-            return _context.Users
+            return await _context.Users.Where(u => u.Email == Email).Select(u => u.Id).FirstOrDefaultAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error in Getting UserId By Email", ex);
+        }
+    }
+
+    public async Task<User?> GetUserByEmailAndRoleAsync(string email)
+    {
+        try
+        {
+            return await _context.Users
                .Include(u => u.Role)
-               .FirstOrDefault(u => u.Email == email);
+               .FirstOrDefaultAsync(u => u.Email == email);
         }
         catch (Exception ex)
         {
@@ -113,11 +125,11 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public User? GetUserById(int id)
+    public async Task<User?> GetUserByIdAsync(int id)
     {
         try
         {
-            return _context.Users.FirstOrDefault(u => u.Id == id);
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
         catch (Exception ex)
         {
@@ -125,14 +137,11 @@ public class UserRepository : IUserRepository
         }
     }
 
-
-
-    public void SoftDeleteUser(User user)
+    public async Task SoftDeleteUserAsync(User user)
     {
         try
         {
-            user.Isdeleted = true;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
@@ -140,11 +149,11 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public List<Role> GetRoles()
+    public async Task<List<Role>> GetRolesAsync()
     {
         try
         {
-            return _context.Roles.ToList();
+            return await _context.Roles.ToListAsync();
         }
         catch (Exception ex)
         {
@@ -153,15 +162,11 @@ public class UserRepository : IUserRepository
     }
 
 
-    public Role GetRoleById(int id)
+    public async Task<Role> GetRoleByIdAsync(int id)
     {
         try
         {
-            var role = _context.Roles.FirstOrDefault(r => r.Id == id);
-            if (role == null)
-            {
-                throw new KeyNotFoundException("Role not found.");
-            }
+            Role? role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == id) ?? throw new KeyNotFoundException("Role not found.");
             return role;
         }
         catch (Exception ex)
@@ -170,12 +175,12 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public void AddUser(User user)
+    public async Task AddUserAsync(User user)
     {
         try
         {
-            _context.Users.Add(user);
-            _context.SaveChanges();
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
@@ -183,11 +188,11 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public User? GetUserByIdAndRole(int id)
+    public async Task<User?> GetUserByIdAndRoleAsync(int id)
     {
         try
         {
-            return _context.Users.Include(u => u.Role).FirstOrDefault(u => u.Id == id);
+            return await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == id);
         }
         catch (Exception ex)
         {
@@ -253,80 +258,136 @@ public class UserRepository : IUserRepository
 
     public async Task<List<Order>> GetOrdersInRangeAsync(DateTime start, DateTime end)
     {
-        return await _context.Orders
-            .Where(o => o.Createdat >= start && o.Createdat < end)
-            .ToListAsync();
+        try
+        {
+            return await _context.Orders
+                .Where(o => o.Createdat >= start && o.Createdat < end)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error In Getting Order Range", ex);
+        }
     }
 
     public async Task<List<OrderItemsMapping>> GetServedItemsAsync(DateTime start, DateTime end)
     {
-        return await _context.OrderItemsMappings
-            .Include(od => od.Order)
-            .Where(od => od.Order != null && od.Order.Createdat >= start && od.Order.Createdat < end)
-            .ToListAsync();
+        try
+        {
+            return await _context.OrderItemsMappings
+                .Include(od => od.Order)
+                .Where(od => od.Order != null && od.Order.Createdat >= start && od.Order.Createdat < end)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error In Getting ServedItem ", ex);
+        }
     }
 
     public async Task<List<(DateTime Date, int Count)>> GetDailyCustomerCountsAsync(DateTime start, DateTime end)
     {
-        return await _context.Customers
-            .Where(c => c.Createdat >= start && c.Createdat < end)
-            .GroupBy(c => c.Createdat.Date)
-            .Select(g => new ValueTuple<DateTime, int>(g.Key, g.Count()))
-            .ToListAsync();
+        try
+        {
+            return await _context.Customers
+                .Where(c => c.Createdat >= start && c.Createdat < end)
+                .GroupBy(c => c.Createdat.Date)
+                .Select(g => new ValueTuple<DateTime, int>(g.Key, g.Count()))
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error In Getting Daily Customer Count", ex);
+        }
     }
 
     public async Task<List<TopItem>> GetTopItemsAsync(DateTime start, DateTime end)
     {
-        return await _context.OrderItemsMappings.Include(od => od.Order)
-            .Where(od => od.Order.Createdat >= start && od.Order.Createdat < end  && od.Order.Status != "Cancalled")
-            .GroupBy(od => od.ItemName)
-            .OrderByDescending(g => g.Sum(od => od.Quantity))
-            .Take(5)
-            .Select(g => new TopItem
-            {
-                Name = g.Key,
-                OrderCount = g.Sum(od => od.Quantity),
-                ImageUrl = "/images/dining-menu.png"
-            })
-            .ToListAsync();
+        try
+        {
+            return await _context.OrderItemsMappings.Include(od => od.Order)
+                .Where(od => od.Order.Createdat >= start && od.Order.Createdat < end && od.Order.Status != "Cancalled")
+                .GroupBy(od => od.ItemName)
+                .OrderByDescending(g => g.Sum(od => od.Quantity))
+                .Take(5)
+                .Select(g => new TopItem
+                {
+                    Name = g.Key,
+                    OrderCount = g.Sum(od => od.Quantity),
+                    ImageUrl = "/images/dining-menu.png"
+                })
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error In Getting Top Item", ex);
+        }
     }
 
     public async Task<List<TopItem>> GetLeastItemsAsync(DateTime start, DateTime end)
     {
-        return await _context.OrderItemsMappings.Include(od => od.Order)
-            .Where(od => od.Order.Createdat >= start && od.Order.Createdat < end  && od.Order.Status != "Cancalled")
-            .GroupBy(od => od.ItemName)
-            .OrderBy(g => g.Sum(od => od.Quantity))
-            .Take(5)
-            .Select(g => new TopItem
-            {
-                Name = g.Key,
-                OrderCount = g.Sum(od => od.Quantity),
-                ImageUrl = "/images/dining-menu.png"
-            })
-            .ToListAsync();
+        try
+        {
+            return await _context.OrderItemsMappings.Include(od => od.Order)
+                .Where(od => od.Order.Createdat >= start && od.Order.Createdat < end && od.Order.Status != "Cancalled")
+                .GroupBy(od => od.ItemName)
+                .OrderBy(g => g.Sum(od => od.Quantity))
+                .Take(5)
+                .Select(g => new TopItem
+                {
+                    Name = g.Key,
+                    OrderCount = g.Sum(od => od.Quantity),
+                    ImageUrl = "/images/dining-menu.png"
+                })
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error In Getting Least Item", ex);
+        }
     }
 
     public async Task<List<(DateTime Createdat, DateTime? Servingtime)>> GetServedOrdersAsync(DateTime start, DateTime end)
     {
-        return await _context.Orders
-            .Where(o => o.Servingtime != null && o.Createdat >= start && o.Createdat < end)
-            .Select(o => new ValueTuple<DateTime, DateTime?>(o.Createdat, o.Servingtime))
-            .ToListAsync();
+        try
+        {
+            return await _context.Orders
+                .Where(o => o.Servingtime != null && o.Createdat >= start && o.Createdat < end)
+                .Select(o => new ValueTuple<DateTime, DateTime?>(o.Createdat, o.Servingtime))
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error In Getting Served Order", ex);
+        }
     }
 
     public async Task<int> GetWaitingCountAsync(DateTime start, DateTime end)
     {
-        return await _context.WaitingTokens
-            .Where(w => !w.IsAssign && !w.Isdeleted && w.Createdat >= start && w.Createdat < end)
-            .CountAsync();
+        try
+        {
+            return await _context.WaitingTokens
+                .Where(w => !w.IsAssign && !w.Isdeleted && w.Createdat >= start && w.Createdat < end)
+                .CountAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error In Getting Waiting Count", ex);
+        }
     }
 
     public async Task<int> GetNewCustomerCountAsync(DateTime start, DateTime end)
     {
-        return await _context.Customers
-            .Where(c => c.Createdat >= start && c.Createdat < end)
-            .CountAsync();
-    }                                           
-                                                            
+        try
+        {
+            return await _context.Customers
+                .Where(c => c.Createdat >= start && c.Createdat < end)
+                .CountAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception("Error In Getting New Customer Count", ex);
+        }
+    }
+
 }

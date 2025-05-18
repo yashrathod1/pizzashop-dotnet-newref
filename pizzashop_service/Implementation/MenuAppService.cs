@@ -238,7 +238,7 @@ public class MenuAppService : IMenuAppService
     }
 
 
-    public async Task<bool> SaveOrder(MenuAppOrderDetailsViewModel model)
+    public async Task<bool> SaveOrder(MenuAppOrderDetailsViewModel model, int UserId)
     {
         try
         {
@@ -253,7 +253,8 @@ public class MenuAppService : IMenuAppService
                 {
                     Orderid = model.OrderId,
                     PaymentMethod = model.PaymentMethod,
-                    Amount = model.Total
+                    Amount = model.Total,
+                    Createdby = UserId
                 };
                 await _menuAppRepository.InsertPaymentInfoAsync(payment);
                 order.Paymentid = payment.Id;
@@ -262,12 +263,14 @@ public class MenuAppService : IMenuAppService
             {
                 existingPayment.PaymentMethod = model.PaymentMethod;
                 existingPayment.Amount = model.Total;
+                existingPayment.Createdby = UserId;
                 await _menuAppRepository.UpdatePaymentInfoAsync(existingPayment);
             }
 
             // Update order info
             order.Subamount = model.Subtotal;
             order.Totalamount = model.Total;
+            order.Updatedby = UserId;
             order.Status = "In Progress";
 
             await _menuAppRepository.UpdateOrderAsync(order);
@@ -336,7 +339,8 @@ public class MenuAppService : IMenuAppService
             foreach (Table? table in tables)
             {
                 if (table.Status != "Occupied")
-                {
+                {   
+                    table.Updatedby = UserId;
                     table.Status = "Occupied";
                     await _menuAppRepository.UpdateTableAsync(table);
                 }
@@ -392,7 +396,7 @@ public class MenuAppService : IMenuAppService
         return model;
     }
 
-    public async Task<bool> UpdateCustomerDetailsAsync(MenuAppCustomerViewModel model)
+    public async Task<bool> UpdateCustomerDetailsAsync(MenuAppCustomerViewModel model, int UserId)
     {
         Customer? customer = await _menuAppRepository.GetCustomerByIdAsync(model.Id);
         if (customer == null) return false;
@@ -401,6 +405,7 @@ public class MenuAppService : IMenuAppService
         customer.PhoneNumber = model.MobileNo;
         customer.Email = model.Email;
         customer.NoOfPerson = model.NoOfPerson;
+        customer.Updatedby = UserId;
 
         WaitingToken? waitingToken = customer.WaitingTokens.FirstOrDefault();
         if (waitingToken != null)
@@ -455,7 +460,7 @@ public class MenuAppService : IMenuAppService
         return await _menuAppRepository.UpdateOrderAsync(order);
     }
 
-    public async Task<(bool Success, string Message)> CompleteOrderAsync(int orderId)
+    public async Task<(bool Success, string Message)> CompleteOrderAsync(int orderId, int UserId)
     {
         Order? order = await _menuAppRepository.GetOrderById(orderId);
         if (order == null)
@@ -472,6 +477,7 @@ public class MenuAppService : IMenuAppService
 
         order.Status = "Completed";
         order.Updatedat = DateTime.Now;
+        order.Updatedby = UserId;
         await _menuAppRepository.UpdateOrderAsync(order);
 
         List<Table>? tables = await _menuAppRepository.GetTablesByOrderIdAsync(orderId);
@@ -481,7 +487,8 @@ public class MenuAppService : IMenuAppService
         foreach (Table? table in tables)
         {
             if (table.Status != "Available")
-            {
+            {   
+                table.Updatedby = UserId;
                 table.Status = "Available";
                 await _menuAppRepository.UpdateTableAsync(table);
             }
@@ -489,7 +496,8 @@ public class MenuAppService : IMenuAppService
 
         Payment? payment = await _menuAppRepository.GetPaymentByOrderIdAsync(orderId);
         if (payment != null)
-        {
+        {   
+            payment.Updatedby = UserId;
             payment.PaymentStatus = true;
             payment.Updatedat = DateTime.Now;
             await _menuAppRepository.UpdatePaymentInfoAsync(payment);
@@ -498,7 +506,8 @@ public class MenuAppService : IMenuAppService
         string invoiceNumber = $"INV{DateTime.Now:yyyyMMddHHmmss}";
 
         Invoice? invoice = new()
-        {
+        {   
+            Createdby = UserId,
             Orderid = orderId,
             InvoiceNumber = invoiceNumber,
             Createdat = DateTime.Now,
@@ -520,7 +529,7 @@ public class MenuAppService : IMenuAppService
         };
     }
 
-    public async Task<bool> AddFeedbackAsync(MenuAppCustomerFeedbackViewModel model)
+    public async Task<bool> AddFeedbackAsync(MenuAppCustomerFeedbackViewModel model, int UserId)
     {
         double average = (model.ServiceRating + model.FoodRating + model.AmbienceRating) / 3.0;
         int roundedAvg = (int)Math.Round(average);
@@ -532,7 +541,8 @@ public class MenuAppService : IMenuAppService
             Service = model.ServiceRating,
             Ambience = model.AmbienceRating,
             Avgrating = clampedAvg,
-            Comments = model.Comment
+            Comments = model.Comment,
+            Createdby = UserId
         };
 
         await _menuAppRepository.AddFeedbackAsync(feedback);
@@ -636,7 +646,7 @@ public class MenuAppService : IMenuAppService
         return pdfBytes;
     }
 
-    public async Task<(bool Success, string Message)> CancelOrderAsync(int orderId)
+    public async Task<(bool Success, string Message)> CancelOrderAsync(int orderId, int UserId)
     {
         Order? order = await _menuAppRepository.GetOrderById(orderId);
 
@@ -647,6 +657,7 @@ public class MenuAppService : IMenuAppService
         if (orderItems.Any(i => i.Preparedquantity > 0))
             return (false, "The order item is ready, cannot cancel the order.");
         order.Status = "Cancelled";
+        order.Updatedby = UserId;
 
         List<Table>? tables = await _menuAppRepository.GetTablesByOrderIdAsync(orderId);
         if (tables == null || !tables.Any())
@@ -655,7 +666,8 @@ public class MenuAppService : IMenuAppService
         foreach (Table? table in tables)
         {
             if (table.Status != "Available")
-            {
+            {   
+                table.Updatedby = UserId;
                 table.Status = "Available";
                 await _menuAppRepository.UpdateTableAsync(table);
             }

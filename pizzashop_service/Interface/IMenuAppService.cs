@@ -6,7 +6,7 @@ public interface IMenuAppService
 {
       Task<MenuAppViewModel?> GetCategoriesAsync();
 
-       Task<List<MenuAppItemViewModel>> GetItemsAsync(int? categoryId = null, bool? isFavourite = null, string? searchTerm = null);
+      Task<List<MenuAppItemViewModel>> GetItemsAsync(int? categoryId = null, bool? isFavourite = null, string? searchTerm = null);
 
       Task<bool> ToggleIsFavourite(int id);
 
@@ -18,13 +18,13 @@ public interface IMenuAppService
 
       Task<MenuAppOrderDetailsViewModel> GetOrderDetailsAsync(int orderId);
 
-      Task<bool> SaveOrder(MenuAppOrderDetailsViewModel model);
+      Task<bool> SaveOrder(MenuAppOrderDetailsViewModel model, int UserId);
 
       Task<(bool Success, string Message)> DeleteOrderItemAsync(int orderItemId);
 
       Task<MenuAppCustomerViewModel?> GetCustomerDetailsByOrderId(int orderId);
 
-      Task<bool> UpdateCustomerDetailsAsync(MenuAppCustomerViewModel model);
+      Task<bool> UpdateCustomerDetailsAsync(MenuAppCustomerViewModel model, int UserId);
 
       Task<MenuAppOrderViewModel?> GetOrderCommentById(int orderId);
 
@@ -34,16 +34,16 @@ public interface IMenuAppService
 
       Task<bool> UpdateOrderComment(MenuAppOrderViewModel model);
 
-      Task<(bool Success, string Message)> CompleteOrderAsync(int orderId);
+      Task<(bool Success, string Message)> CompleteOrderAsync(int orderId, int UserId);
 
       Task<MenuAppOrderViewModel?> GetOrderStatusAsync(int orderId);
 
-      Task<bool> AddFeedbackAsync(MenuAppCustomerFeedbackViewModel model);
+      Task<bool> AddFeedbackAsync(MenuAppCustomerFeedbackViewModel model, int UserId);
 
       Task<OrderDetailsViewModel?> GetOrderDetailsForInvoiceAsync(int orderId);
 
       Task<byte[]> GenerateInvoicePdfAsync(int orderId);
 
-      Task<(bool Success, string Message)> CancelOrderAsync(int orderId);
+      Task<(bool Success, string Message)> CancelOrderAsync(int orderId, int UserId);
 
 }

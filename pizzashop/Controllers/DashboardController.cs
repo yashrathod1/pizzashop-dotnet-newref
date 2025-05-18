@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using pizzashop_repository.ViewModels;
@@ -30,20 +31,20 @@ public class DashboardController : Controller
     }
 
     [HttpGet]
-    public IActionResult Profile()
+    public async Task<IActionResult> Profile()
     {
         try
         {   
             ViewBag.ActiveNav = "Dashboard";
             string? token = Request.Cookies["AuthToken"];
-            string? email = _useService.ExtractEmailFromToken(token);
+            string? email =  _useService.ExtractEmailFromToken(token);
 
             if (string.IsNullOrEmpty(email))
             {
                 return RedirectToAction("Login", "Login");
             }
 
-            ProfileViewModel? model = _useService.GetUserProfile(email);
+            ProfileViewModel? model = await _useService.GetUserProfileAsync(email);
 
             if (model == null)
             {
@@ -62,7 +63,7 @@ public class DashboardController : Controller
 
 
     [HttpPost]
-    public IActionResult Profile(ProfileViewModel model)
+    public async Task<IActionResult> Profile(ProfileViewModel model)
     {
         try
         {
@@ -74,7 +75,7 @@ public class DashboardController : Controller
                 return RedirectToAction("Login", "Login");
             }
 
-            bool success = _useService.UpdateUserProfile(email, model);
+            bool success = await _useService.UpdateUserProfileAsync(email, model);
 
             CookieOptions? coockieopt = new()
 
@@ -112,7 +113,7 @@ public class DashboardController : Controller
     }
 
     [HttpPost]
-    public IActionResult ChangePassword(ChangePasswordViewModel model)
+    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
     {
         try
         {
@@ -124,7 +125,7 @@ public class DashboardController : Controller
                 return RedirectToAction("Login", "Login");
             }
 
-            string? result = _useService.ChangePassword(userEmail, model);
+            string? result = await _useService.ChangePasswordAsync(userEmail, model);
 
             if (result == "UserNotFound")
             {

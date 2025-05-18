@@ -44,7 +44,11 @@ public class WaitingListController : Controller
             {
                 return Json("Invalid data.");
             }
-            var (IsSuccess, Message) = await _waitingListService.AddWaitingTokenInWaitingListAsync(waitingTokenVm);
+
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            int userId = int.Parse(userIdClaim ?? "0");
+
+            var (IsSuccess, Message) = await _waitingListService.AddWaitingTokenInWaitingListAsync(waitingTokenVm, userId);
             return Json(new { success = IsSuccess, message = Message });
         }
         catch (Exception ex)
@@ -77,7 +81,10 @@ public class WaitingListController : Controller
     {
         try
         {
-            var (success, message) = await _waitingListService.EditWaitingTokenAsync(model);
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            int userId = int.Parse(userIdClaim ?? "0");
+
+            var (success, message) = await _waitingListService.EditWaitingTokenAsync(model, userId);
 
             if (success)
             {
@@ -131,7 +138,10 @@ public class WaitingListController : Controller
     [HttpPost]
     public async Task<IActionResult> AssignTables([FromBody] AssignTableInWaitingTokenViewModel model)
     {
-        AssignTableResultViewModel? result = await _waitingListService.AssignTablesToCustomerAsync(model);
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+        int userId = int.Parse(userIdClaim ?? "0");
+
+        AssignTableResultViewModel? result = await _waitingListService.AssignTablesToCustomerAsync(model, userId);
 
         return Json(new
         {

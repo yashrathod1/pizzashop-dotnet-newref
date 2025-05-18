@@ -24,11 +24,11 @@ public class UserService : IUserService
 
     }
 
-    public User? GetUserByEmail(string email)
+    public async Task<User?> GetUserByEmailAsync(string email)
     {
         try
         {
-            return _userRepository.GetUserByEmail(email);
+            return await _userRepository.GetUserByEmailAsync(email);
         }
         catch (Exception ex)
         {
@@ -37,11 +37,11 @@ public class UserService : IUserService
     }
 
 
-    public User? GetUserByUsername(string username)
+    public async Task<User?> GetUserByUsernameAsync(string username)
     {
         try
         {
-            return _userRepository.GetUserByUsername(username);
+            return await _userRepository.GetUserByUsernameAsync(username);
         }
         catch (Exception ex)
         {
@@ -49,11 +49,11 @@ public class UserService : IUserService
         }
     }
 
-    public User? AuthenicateUser(string email, string password)
+    public async Task<User?> AuthenicateUserAsync(string email, string password)
     {
         try
         {
-            User? user = _userRepository.GetUserByEmail(email);
+            User? user = await _userRepository.GetUserByEmailAsync(email);
 
             if (user == null)
             {
@@ -64,7 +64,7 @@ public class UserService : IUserService
             {
                 string hashedPassword = BCrypt.Net.BCrypt.HashPassword(user.Password);
                 user.Password = hashedPassword;
-                _userRepository.UpdateUser(user);
+                await _userRepository.UpdateUserAsync(user);
             }
 
             if (!BCrypt.Net.BCrypt.Verify(password, user.Password))
@@ -80,11 +80,11 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<string> GenerateJwttoken(string email, int roleId)
+    public async Task<string> GenerateJwttokenAsync(string email, int roleId)
     {
         try
         {
-            return await _jwtService.GenerateJwtToken(email, roleId);
+            return await _jwtService.GenerateJwtTokenAsync(email, roleId);
         }
         catch (Exception ex)
         {
@@ -93,17 +93,17 @@ public class UserService : IUserService
     }
 
 
-    public string GeneratePasswordResetToken(string email)
+    public async Task<string?> GeneratePasswordResetTokenAsync(string email)
     {
         try
         {
-            User? user = _userRepository.GetUserByEmail(email);
+            User? user = await _userRepository.GetUserByEmailAsync(email);
             if (user == null) return null;
 
             user.PasswordResetToken = Guid.NewGuid().ToString();
             user.Resettokenexpiry = DateTime.UtcNow.AddHours(1);
 
-            _userRepository.UpdateUser(user);
+            await _userRepository.UpdateUserAsync(user);
 
             return user.PasswordResetToken;
         }
@@ -115,37 +115,43 @@ public class UserService : IUserService
 
 
 
-    public bool ResetPassword(string token, string newPassword, string confirmPassword, out string message)
+    public async Task<ResetPasswordResult> ResetPasswordAsync(string token, string newPassword, string confirmPassword)
     {
+        var result = new ResetPasswordResult();
+
         try
         {
             if (newPassword != confirmPassword)
             {
-                message = "The new password and confirmation password do not match.";
-                return false;
+                result.Success = false;
+                result.Message = "The new password and confirmation password do not match.";
+                return result;
             }
 
-            User? user = _userRepository.GetUserByResetToken(token);
+            User? user = await _userRepository.GetUserByResetTokenAsync(token);
 
             if (user == null || user.Resettokenexpiry < DateTime.UtcNow)
             {
-                message = "Invalid or expired reset token.";
-                return false;
+                result.Success = false;
+                result.Message = "Invalid or expired reset token.";
+                return result;
             }
 
             user.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
             user.PasswordResetToken = null;
             user.Resettokenexpiry = null;
 
-            _userRepository.UpdateUser(user);
+            await _userRepository.UpdateUserAsync(user);
 
-            message = "Password has been successfully updated.";
-            return true;
+            result.Success = true;
+            result.Message = "Password has been successfully updated.";
+            return result;
         }
         catch (Exception)
         {
-            message = "An error occurred while resetting the password.";
-            return false;
+            result.Success = false;
+            result.Message = "An error occurred while resetting the password.";
+            return result;
         }
     }
 
@@ -166,14 +172,14 @@ public class UserService : IUserService
         }
     }
 
-    public ProfileViewModel? GetUserProfile(string email)
+    public async Task<ProfileViewModel?> GetUserProfileAsync(string email)
     {
         try
         {
             if (string.IsNullOrEmpty(email))
                 return null;
 
-            User? user = _userRepository.GetUserByEmailAndRole(email);
+            User? user = await _userRepository.GetUserByEmailAndRoleAsync(email);
             if (user == null)
                 return null;
 
@@ -199,11 +205,11 @@ public class UserService : IUserService
         }
     }
 
-    public bool UpdateUserProfile(string email, ProfileViewModel model)
+    public async Task<bool> UpdateUserProfileAsync(string email, ProfileViewModel model)
     {
         try
         {
-            User? user = _userRepository.GetUserByEmail(email);
+            User? user = await _userRepository.GetUserByEmailAsync(email);
             if (user == null) return false;
 
             user.Firstname = model.Firstname;
@@ -242,16 +248,17 @@ public class UserService : IUserService
             }
 
             model.ProfileImagePath = user.Profileimagepath;
-            
+
             var context = _httpContextAccessor.HttpContext;
             if (context != null)
             {
-                context.Response.Cookies.Append("Username", model.Username);
-                context.Response.Cookies.Append("ProfileImgPath", model.ProfileImagePath);
+                var username = model.Username ?? string.Empty;
+                var profilePath = model.ProfileImagePath ?? string.Empty;
+
+                context.Response.Cookies.Append("Username", username);
+                context.Response.Cookies.Append("ProfileImgPath", profilePath);
             }
-
-
-            return _userRepository.UpdateUser(user);
+            return await _userRepository.UpdateUserAsync(user);
         }
         catch
         {
@@ -259,11 +266,11 @@ public class UserService : IUserService
         }
     }
 
-    public string ChangePassword(string email, ChangePasswordViewModel model)
+    public async Task<string?> ChangePasswordAsync(string email, ChangePasswordViewModel model)
     {
         try
         {
-            User? user = _userRepository.GetUserByEmail(email);
+            User? user = await _userRepository.GetUserByEmailAsync(email);
 
             if (user == null)
             {
@@ -276,7 +283,7 @@ public class UserService : IUserService
             }
 
             user.Password = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
-            _userRepository.UpdateUser(user);
+            await _userRepository.UpdateUserAsync(user);
 
             return "Success";
         }
@@ -341,17 +348,17 @@ public class UserService : IUserService
     }
 
 
-    public bool DeleteUser(int id)
+    public async Task<bool> DeleteUserAsync(int id)
     {
         try
         {
-            User? user = _userRepository.GetUserById(id);
+            User? user = await _userRepository.GetUserByIdAsync(id);
             if (user == null)
             {
                 return false;
             }
-
-            _userRepository.SoftDeleteUser(user);
+            user.Isdeleted = true;
+            await _userRepository.SoftDeleteUserAsync(user);
             return true;
         }
         catch (Exception ex)
@@ -361,11 +368,11 @@ public class UserService : IUserService
     }
 
 
-    public List<Role> GetRoles()
+    public async Task<List<Role>> GetRolesAsync()
     {
         try
         {
-            return _userRepository.GetRoles();
+            return await _userRepository.GetRolesAsync();
         }
         catch (Exception ex)
         {
@@ -374,17 +381,17 @@ public class UserService : IUserService
     }
 
 
-    public async Task<bool> AddUser(AddUserViewModel model)
+    public async Task<bool> AddUserAsync(AddUserViewModel model)
     {
         try
         {
-            Role? role = _userRepository.GetRoleById(model.RoleId);
+            Role? role = await _userRepository.GetRoleByIdAsync(model.RoleId);
             if (role == null)
             {
                 return false;
             }
 
-            User? user = new User
+            User? user = new()
             {
                 Firstname = model.Firstname,
                 Lastname = model.Lastname,
@@ -422,7 +429,7 @@ public class UserService : IUserService
                 user.Profileimagepath = "/images/users/" + uniqueFileName;
             }
 
-            _userRepository.AddUser(user);
+            await _userRepository.AddUserAsync(user);
 
             return true;
         }
@@ -432,11 +439,11 @@ public class UserService : IUserService
         }
     }
 
-    public EditUserViewModel GetUserForEdit(int id)
+    public async Task<EditUserViewModel> GetUserForEditAsync(int id)
     {
         try
         {
-            User? user = _userRepository.GetUserById(id);
+            User? user = await _userRepository.GetUserByIdAsync(id);
 
             if (user == null) return null;
 
@@ -465,11 +472,11 @@ public class UserService : IUserService
     }
 
 
-    public async Task<bool> EditUser(int id, EditUserViewModel model)
+    public async Task<bool> EditUserAsync(int id, EditUserViewModel model)
     {
         try
         {
-            User? user = _userRepository.GetUserById(id);
+            User? user = await _userRepository.GetUserByIdAsync(id);
             if (user == null) return false;
 
             bool hasChanges =
@@ -544,7 +551,7 @@ public class UserService : IUserService
                 user.Profileimagepath = "/images/users/" + uniqueFileName;
             }
 
-            _userRepository.UpdateUser(user);
+            await _userRepository.UpdateUserAsync(user);
             return true;
         }
         catch (Exception ex)
@@ -558,18 +565,14 @@ public class UserService : IUserService
     {
         try
         {
-            var role = await _userRepository.GetRoleByNameAsync(roleName);
-            if (role == null)
-            {
-                throw new Exception($"Role with name {roleName} not found.");
-            }
+            var role = await _userRepository.GetRoleByNameAsync(roleName) ?? throw new Exception($"Role with name {roleName} not found.");
 
             var rolePermissions = await _userRepository.GetRolePermissionsByRoleIdAsync(role.Id);
 
             var permissions = rolePermissions.Select(rp => new RolePermissionViewModel
             {
                 Permissionid = rp.Permissionid,
-                PermissionName = rp.Permission.Permissiomname,
+                PermissionName = rp.Permission?.Permissiomname ??"Unknown",
                 Canview = rp.Canview,
                 CanaddEdit = rp.CanaddEdit,
                 Candelete = rp.Candelete
@@ -609,7 +612,7 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<DashboardViewModel> GetDashboardDataAsync(string filter,DateTime? customStartDate = null, DateTime? customEndDate = null)
+    public async Task<DashboardViewModel> GetDashboardDataAsync(string filter, DateTime? customStartDate = null, DateTime? customEndDate = null)
     {
         DateTime startDate, endDate;
         var today = DateTime.Today;
@@ -617,7 +620,7 @@ public class UserService : IUserService
         if (filter == "Custom" && customStartDate.HasValue && customEndDate.HasValue)
         {
             startDate = customStartDate.Value.Date;
-            endDate = customEndDate.Value.Date.AddDays(1); 
+            endDate = customEndDate.Value.Date.AddDays(1);
         }
         else
         {

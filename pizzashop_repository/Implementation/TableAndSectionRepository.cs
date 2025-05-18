@@ -71,13 +71,14 @@ public class TableAndSectionRepository : ITableAndSectionRepository
         };
     }
 
-    public async Task<bool> UpdateSectionAsync(SectionsViewModal section)
+    public async Task<bool> UpdateSectionAsync(SectionsViewModal section, int UserId)
     {
         Section? existingSection = await _context.Sections.FindAsync(section.Id);
         if (existingSection == null) return false;
 
         existingSection.Name = section.Name;
         existingSection.Description = section.Description;
+        existingSection.Updatedby = UserId;
 
         return await _context.SaveChangesAsync() > 0;
     }

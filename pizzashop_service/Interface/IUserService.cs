@@ -6,39 +6,42 @@ namespace pizzashop_service.Interface;
 
 public interface IUserService
 {
-    User? GetUserByEmail(string email);
+    Task<User?> GetUserByEmailAsync(string email);
 
-    User? GetUserByUsername(string username);
+    Task<User?> GetUserByUsernameAsync(string username);
 
-    User? AuthenicateUser(string email, string password);
-    Task<string> GenerateJwttoken(string email, int roleId);
+    Task<User?> AuthenicateUserAsync(string email, string password);
 
-    bool ResetPassword(string email, string newPassword, string confirmPassword, out string message);
+    Task<string> GenerateJwttokenAsync(string email, int roleId);
 
     string ExtractEmailFromToken(string token);
 
-    string GeneratePasswordResetToken(string email);
-    ProfileViewModel? GetUserProfile(string email);
+    Task<ResetPasswordResult> ResetPasswordAsync(string token, string newPassword, string confirmPassword);
 
-    bool UpdateUserProfile(string email, ProfileViewModel model);
+    Task<string?> GeneratePasswordResetTokenAsync(string email);
 
-    string? ChangePassword(string email, ChangePasswordViewModel model);
+    Task<ProfileViewModel?> GetUserProfileAsync(string email);
+
+    Task<bool> UpdateUserProfileAsync(string email, ProfileViewModel model);
+
+    Task<string?> ChangePasswordAsync(string email, ChangePasswordViewModel model);
 
     Task<PagedResult<UserTableViewModel>> GetUsersAsync(UserPaginationViewModel model);
-    bool DeleteUser(int id);
 
-    List<Role> GetRoles();
+    Task<bool> DeleteUserAsync(int id);
 
-    Task<bool> AddUser(AddUserViewModel model);
+    Task<List<Role>> GetRolesAsync();
 
-    EditUserViewModel GetUserForEdit(int id);
+    Task<bool> AddUserAsync(AddUserViewModel model);
 
-    Task<bool> EditUser(int id, EditUserViewModel model);
+    Task<EditUserViewModel> GetUserForEditAsync(int id);
+
+    Task<bool> EditUserAsync(int id, EditUserViewModel model);
 
     Task<List<RolePermissionViewModel>> GetPermissionsByRoleAsync(string roleName);
 
     Task<bool> UpdateRolePermissionsAsync(List<RolePermissionViewModel> permissions);
 
-    Task<DashboardViewModel> GetDashboardDataAsync(string filter,DateTime? customStartDate = null, DateTime? customEndDate = null);
+    Task<DashboardViewModel> GetDashboardDataAsync(string filter, DateTime? customStartDate = null, DateTime? customEndDate = null);
 
 }

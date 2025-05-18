@@ -43,11 +43,11 @@ public class UsersController : Controller
 
     [CustomAuthorize("Users", "CanDelete")]
     [HttpGet("Delete/{id}")]
-    public IActionResult DeleteUser(int id)
+    public async Task<IActionResult> DeleteUser(int id)
     {
         try
         {
-            bool isDeleted = _userService.DeleteUser(id);
+            bool isDeleted = await _userService.DeleteUserAsync(id);
             if (!isDeleted)
             {
                 return NotFound();
@@ -63,30 +63,30 @@ public class UsersController : Controller
     }
 
 
-    [HttpGet("AddUser")]
-    public IActionResult AddUser()
+    [HttpGet]
+    public async Task<IActionResult> AddUser()
     {
         ViewBag.ActiveNav = "Users";
-        ViewBag.Roles = _userService.GetRoles();
+        ViewBag.Roles = await _userService.GetRolesAsync();
         return View();
     }
 
     [CustomAuthorize("Users", "CanAddEdit")]
-    [HttpPost("AddUser")]
+    [HttpPost]
     public async Task<IActionResult> AddUser([FromForm] AddUserViewModel model)
     {
         try
         {
-            ViewBag.Roles = _userService.GetRoles();
+            ViewBag.Roles = await _userService.GetRolesAsync();
 
-            var emailverify = _userService.GetUserByEmail(model.Email);
+            var emailverify = await _userService.GetUserByEmailAsync(model.Email);
             if (emailverify != null)
             {
                 TempData["error"] = "Account already exists with Email";
                 return View(model);
             }
 
-            var usernameverify = _userService.GetUserByUsername(model.Username);
+            var usernameverify = await _userService.GetUserByUsernameAsync(model.Username);
             if (usernameverify != null)
             {
                 TempData["error"] = "Account already exists with username";
@@ -98,16 +98,16 @@ public class UsersController : Controller
                 return Json(new { success = false, message = "Please Enter Valid Data" });
             }
 
-            bool isAdded = await _userService.AddUser(model);
+            bool isAdded = await _userService.AddUserAsync(model);
             if (isAdded)
             {
-                string filePath = @"D:/3tierpizzashop/pizzashop/Template/AddNewUserEmailTemplate.html";
-                string emailBody = System.IO.File.ReadAllText(filePath);
-                emailBody = emailBody.Replace("{Email}", model.Email);
-                emailBody = emailBody.Replace("{Password}", model.Password);
+                // string filePath = @"D:/3tierpizzashop/pizzashop/Template/AddNewUserEmailTemplate.html";
+                // string emailBody = System.IO.File.ReadAllText(filePath);
+                // emailBody = emailBody.Replace("{Email}", model.Email);
+                // emailBody = emailBody.Replace("{Password}", model.Password);
 
-                string subject = "Your Login Details";
-                await _emailSender.SendEmailAsync(model.Email, subject, emailBody);
+                // string subject = "Your Login Details";
+                // await _emailSender.SendEmailAsync(model.Email, subject, emailBody);
 
                 TempData["success"] = "User Successfully Added";
                 return RedirectToAction("UsersList", "Users");
@@ -125,18 +125,18 @@ public class UsersController : Controller
 
 
     [HttpGet("EditUser/{id}")]
-    public IActionResult EditUser(int id)
+    public async Task<IActionResult> EditUser(int id)
     {
         try
         {
             ViewBag.ActiveNav = "Users";
-            EditUserViewModel? model = _userService.GetUserForEdit(id);
+            EditUserViewModel? model = await _userService.GetUserForEditAsync(id);
             if (model == null)
             {
                 return NotFound();
             }
 
-            ViewBag.Roles = _userService.GetRoles();
+            ViewBag.Roles = await _userService.GetRolesAsync();
             return View(model);
         }
         catch
@@ -155,15 +155,15 @@ public class UsersController : Controller
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.Roles = _userService.GetRoles();
+                ViewBag.Roles = await _userService.GetRolesAsync();
                 return View(model);
             }
 
-            bool isUpdated = await _userService.EditUser(id, model);
+            bool isUpdated = await _userService.EditUserAsync(id, model);
             if (!isUpdated)
             {
                 TempData["error"] = "No Change Found Please Update the User";
-                ViewBag.Roles = _userService.GetRoles();
+                ViewBag.Roles = await _userService.GetRolesAsync();
                 return View(model);
             }
             TempData["success"] = "User Successfully Edited";
@@ -172,7 +172,7 @@ public class UsersController : Controller
         catch
         {
             TempData["error"] = "An error occurred while updating the user.";
-            ViewBag.Roles = _userService.GetRoles();
+            ViewBag.Roles =  await _userService.GetRolesAsync();
             return View(model);
         }
     }

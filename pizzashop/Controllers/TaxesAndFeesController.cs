@@ -15,7 +15,7 @@ public class TaxesAndFeesController : Controller
         _taxesAndFeesService = taxesAndFeesService;
     }
     public async Task<IActionResult> Index()
-    {    
+    {
         ViewBag.ActiveNav = "TaxsAndFees";
         RolePermissionViewModel? permission = await PermissionHelper.GetPermissionsAsync(HttpContext, "TaxAndFee");
 
@@ -25,7 +25,7 @@ public class TaxesAndFeesController : Controller
 
     [HttpGet]
     public async Task<IActionResult> GetTaxesAndFees(PaginationViewModel model)
-    {   
+    {
         RolePermissionViewModel? permission = await PermissionHelper.GetPermissionsAsync(HttpContext, "TaxAndFee");
         ViewBag.Permissions = permission;
 
@@ -40,7 +40,11 @@ public class TaxesAndFeesController : Controller
         {
             return Json(new { success = false, message = "Invalid data provided." });
         }
-        bool result = await _taxesAndFeesService.AddTaxAsync(model);
+
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+        int userId = int.Parse(userIdClaim ?? "0");
+
+        bool result = await _taxesAndFeesService.AddTaxAsync(model, userId);
         if (result)
         {
             return Json(new { success = true, message = "Tax added successfully." });
@@ -84,7 +88,10 @@ public class TaxesAndFeesController : Controller
             });
         }
 
-        bool result = await _taxesAndFeesService.UpdateTaxAsync(model);
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+        int userId = int.Parse(userIdClaim ?? "0");
+
+        bool result = await _taxesAndFeesService.UpdateTaxAsync(model, userId);
 
         if (!result)
         {

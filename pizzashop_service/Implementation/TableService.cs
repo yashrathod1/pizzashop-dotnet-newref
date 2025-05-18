@@ -57,7 +57,7 @@ public class TableService : ITableService
         }).ToList();
     }
 
-    public async Task<(bool IsSuccess, string Message)> AddWaitingTokenAsync(WaitingTokenViewModel waitingTokenVm)
+    public async Task<(bool IsSuccess, string Message)> AddWaitingTokenAsync(WaitingTokenViewModel waitingTokenVm, int UserId)
     {
         Customer? existingCustomer = await _tableRepository.GetCustomerByEmailOrMobileAsync(waitingTokenVm.Email);
 
@@ -76,7 +76,8 @@ public class TableService : ITableService
                 Name = waitingTokenVm.Name,
                 Email = waitingTokenVm.Email,
                 PhoneNumber = waitingTokenVm.MobileNo,
-                NoOfPerson = waitingTokenVm.NoOfPerson
+                NoOfPerson = waitingTokenVm.NoOfPerson,
+                Createdby = UserId
             };
 
             await _tableRepository.AddCustomer(customer);
@@ -87,7 +88,7 @@ public class TableService : ITableService
             WaitingToken? existingToken = await _tableRepository.GetWaitingTokenByCustomerId(customer.Id);
             if (existingToken != null)
             {
-                return (false, "Customer Already have Waiting Tokne");
+                return (false, "Customer Already have Waiting Token");
             }
         }
 
@@ -96,7 +97,8 @@ public class TableService : ITableService
         {
             CustomerId = customer.Id,
             NoOfPersons = waitingTokenVm.NoOfPerson,
-            SectionId = waitingTokenVm.SectionId
+            SectionId = waitingTokenVm.SectionId,
+            Createdby = UserId
         };
 
         await _tableRepository.AddWaitingToken(waitingToken);
@@ -164,7 +166,7 @@ public class TableService : ITableService
         }
     }
 
-    public async Task<(bool IsSuccess, string Message)> AssignTablesAsync(AssignTableRequestViewModel model)
+    public async Task<(bool IsSuccess, string Message)> AssignTablesAsync(AssignTableRequestViewModel model, int UserId)
     {
         List<Table>? selectedTables = await _tableRepository.GetTablesByIdsAsync(model.SelectedTables);
         int totalCapacity = selectedTables.Sum(t => t.Capacity);
@@ -183,6 +185,7 @@ public class TableService : ITableService
             {
                 existingCustomer.IsAssign = true;
                 existingCustomer.Updatedat = DateTime.Now;
+                existingCustomer.Updatedby = UserId;
             }
 
 
@@ -197,6 +200,8 @@ public class TableService : ITableService
                 customer.Name = model.Customer.Name;
                 customer.PhoneNumber = model.Customer.MobileNo;
                 customer.NoOfPerson = model.NumberOfPersons;
+                customer.Updatedby = UserId;
+                customer.Updatedat = DateTime.Now;
                 await _tableRepository.UpdateCustomerAsync(customer);
             }
         }
@@ -207,7 +212,8 @@ public class TableService : ITableService
                 Name = model.Customer.Name,
                 Email = model.Customer.Email,
                 PhoneNumber = model.Customer.MobileNo,
-                NoOfPerson = model.NumberOfPersons
+                NoOfPerson = model.NumberOfPersons,
+                Createdby = UserId
             };
             await _tableRepository.CreateCustomerAsync(customer);
         }
@@ -216,7 +222,8 @@ public class TableService : ITableService
         {
             Customerid = customer.Id,
             Status = "Pending",
-            Createdat = DateTime.Now
+            Createdat = DateTime.Now,
+            Createdby = UserId
         };
 
         await _tableRepository.CreateOrderAsync(order);
@@ -231,6 +238,7 @@ public class TableService : ITableService
                 TaxId = tax.Id,
                 TaxName = tax.Name,
                 TaxValue = tax.Value,
+                
             };
             await _tableRepository.CreateOrderTaxAsync(ordertax);
 

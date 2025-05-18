@@ -25,7 +25,7 @@ public class MenuAppController : Controller
 
         if (orderdetails == null || orderdetails.CategoryList.Count == 0)
         {
-            return NotFound();  
+            return NotFound();
         }
         return View(orderdetails);
     }
@@ -103,7 +103,10 @@ public class MenuAppController : Controller
     [HttpPost]
     public async Task<IActionResult> SaveOrder([FromBody] MenuAppOrderDetailsViewModel model)
     {
-        bool success = await _menuAppService.SaveOrder(model);
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+        int userId = int.Parse(userIdClaim ?? "0");
+
+        bool success = await _menuAppService.SaveOrder(model, userId);
         if (success)
             return Ok(new { success = true });
         else
@@ -148,7 +151,10 @@ public class MenuAppController : Controller
             return Json(new { success = false, message = "Invalid data." });
         }
 
-        bool result = await _menuAppService.UpdateCustomerDetailsAsync(model);
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+        int userId = int.Parse(userIdClaim ?? "0");
+
+        bool result = await _menuAppService.UpdateCustomerDetailsAsync(model, userId);
 
         if (result)
         {
@@ -235,7 +241,10 @@ public class MenuAppController : Controller
     {
         try
         {
-            var (success, message) = await _menuAppService.CompleteOrderAsync(orderId);
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            int userId = int.Parse(userIdClaim ?? "0");
+
+            var (success, message) = await _menuAppService.CompleteOrderAsync(orderId, userId);
             return Json(new { success, message });
         }
         catch (Exception)
@@ -257,7 +266,10 @@ public class MenuAppController : Controller
     {
         try
         {
-            bool isSaved = await _menuAppService.AddFeedbackAsync(model);
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            int userId = int.Parse(userIdClaim ?? "0");
+
+            bool isSaved = await _menuAppService.AddFeedbackAsync(model, userId);
             if (isSaved)
             {
                 return Json(new { success = true });
@@ -291,7 +303,10 @@ public class MenuAppController : Controller
     {
         try
         {
-            var (Success, Message) = await _menuAppService.CancelOrderAsync(orderId);
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            int userId = int.Parse(userIdClaim ?? "0");
+
+            var (Success, Message) = await _menuAppService.CancelOrderAsync(orderId,userId);
             return Json(new { success = Success, message = Message });
         }
         catch

@@ -21,9 +21,9 @@ public interface IMenuService
 
     // Task<List<ItemViewModel>> GetItemsByCategoryAsync(int categoryId);
 
-    Task<bool> AddItemAsync(ItemViewModel model);
+    Task<bool> AddItemAsync(ItemViewModel model,int UserId);
 
-    Task<bool> UpdateItemAsync(ItemViewModel model, int id);
+    Task<bool> UpdateItemAsync(ItemViewModel model, int id, int userId);
 
     Task<bool> SoftDeleteItemAsync(int id);
 
@@ -37,19 +37,19 @@ public interface IMenuService
 
     Task<List<ModifierViewModel>> GetModifiersAsync();
 
-    Task<bool> AddModifierGroup(ModifierGroupViewModel model);
+    Task<bool> AddModifierGroup(ModifierGroupViewModel model, int UserId);
 
     Task<bool> SoftDeleteModifierGroupAsync(int id);
 
     Task<ModifierGroupViewModel> GetModifierGroupById(int id);
 
-    Task<bool> UpdateModifierGroup(ModifierGroupViewModel model);
+    Task<bool> UpdateModifierGroup(ModifierGroupViewModel model, int UserId);
 
-    Task<bool> AddModifierAsync(ModifierViewModel model);
+    Task<bool> AddModifierAsync(ModifierViewModel model, int UserId);
 
     Task<ModifierViewModel> GetModifierById(int id);
 
-    Task<bool> UpdateModifierAsync(ModifierViewModel model);
+    Task<bool> UpdateModifierAsync(ModifierViewModel model,int UserId);
 
     Task<bool> SoftDeleteModifierAsync(int id);
 

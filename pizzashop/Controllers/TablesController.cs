@@ -38,7 +38,11 @@ public class TablesController : Controller
             {
                 return Json("Invalid data.");
             }
-            var (IsSuccess, Message) = await _tableService.AddWaitingTokenAsync(waitingTokenVm);
+
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            int userId = int.Parse(userIdClaim ?? "0");
+
+            var (IsSuccess, Message) = await _tableService.AddWaitingTokenAsync(waitingTokenVm, userId);
             return Json(new { success = IsSuccess, message = Message });
         }
         catch (Exception ex)
@@ -72,8 +76,11 @@ public class TablesController : Controller
     public async Task<IActionResult> AssignTables([FromBody] AssignTableRequestViewModel model)
     {
         try
-        {
-            var (IsSuccess, Message) = await _tableService.AssignTablesAsync(model);
+        {       
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            int userId = int.Parse(userIdClaim ?? "0");
+
+            var (IsSuccess, Message) = await _tableService.AssignTablesAsync(model, userId);
             return Json(new { success = IsSuccess, message = Message });
         }
         catch (Exception ex)

@@ -4,7 +4,7 @@ namespace pizzashop_repository.ViewModels;
 
 public class ChangePasswordViewModel
 {
-     public string? Email { get; set; }
+    public string? Email { get; set; }
 
     [Required(ErrorMessage = "Current password is required.")]
     public string? CurrentPassword { get; set; }
@@ -18,3 +18,10 @@ public class ChangePasswordViewModel
     [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
     public string? ConfirmPassword { get; set; }
 }
+
+public class ResetPasswordResult
+{
+    public bool Success { get; set; }
+    public string Message { get; set; } = "";
+}
+

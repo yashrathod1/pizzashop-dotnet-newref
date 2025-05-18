@@ -52,7 +52,7 @@ public interface IMenuRepository
 
     Task<Modifiergroup?> GetModifierGroupByIdAsync(int id);
 
-    Task<bool> UpdateModifierGroup(ModifierGroupViewModel model);
+    Task<bool> UpdateModifierGroup(ModifierGroupViewModel model, int UserId);
 
     Task<bool> AddModifierAsync(Modifier modifier, List<int> modifierGroupIds);
 

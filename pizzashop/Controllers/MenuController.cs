@@ -178,14 +178,17 @@ public class MenuController : Controller
         {
             string fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.ItemPhoto.FileName);
             string filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/ItemImage/", fileName);
-            using (FileStream? stream = new FileStream(filePath, FileMode.Create))
+            using (FileStream? stream = new(filePath, FileMode.Create))
             {
                 model.ItemPhoto.CopyTo(stream);
             }
             model.ItemImagePath = "/images/ItemImage/" + fileName;
         }
 
-        bool result = await _menuService.AddItemAsync(model);
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+        int userId = int.Parse(userIdClaim ?? "0");
+
+        bool result = await _menuService.AddItemAsync(model, userId);
 
         if (result)
         {
@@ -224,8 +227,10 @@ public class MenuController : Controller
             model.ItemImagePath = "/images/ItemImage/" + fileName;
         }
 
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+        int userId = int.Parse(userIdClaim ?? "0");
 
-        var result = await _menuService.UpdateItemAsync(model, id);
+        var result = await _menuService.UpdateItemAsync(model, id, userId);
         if (result)
         {
             return Json(new { success = true, message = "Item edited successfully" });
@@ -285,7 +290,10 @@ public class MenuController : Controller
             return Json(new { success = false, message = "Invalid data. Please check your input." });
         }
 
-        bool isAdded = await _menuService.AddModifierGroup(model);
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+        int userId = int.Parse(userIdClaim ?? "0");
+
+        bool isAdded = await _menuService.AddModifierGroup(model, userId);
         if (isAdded)
         {
             return Json(new { success = true, message = "Modifier Group added successfully!" });
@@ -322,7 +330,10 @@ public class MenuController : Controller
             return Json(new { success = false, message = "Invalid data. Please check your input." });
         }
 
-        bool isUpdated = await _menuService.UpdateModifierGroup(model);
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+        int userId = int.Parse(userIdClaim ?? "0");
+
+        bool isUpdated = await _menuService.UpdateModifierGroup(model, userId);
 
         if (isUpdated)
         {
@@ -342,7 +353,10 @@ public class MenuController : Controller
         }
         if (ModelState.IsValid)
         {
-            bool isAdded = await _menuService.AddModifierAsync(model);
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+            int userId = int.Parse(userIdClaim ?? "0");
+
+            bool isAdded = await _menuService.AddModifierAsync(model, userId);
             if (isAdded)
             {
                 return Json(new { success = true });
@@ -364,7 +378,10 @@ public class MenuController : Controller
     [HttpPost]
     public async Task<IActionResult> EditModifier([FromBody] ModifierViewModel model)
     {
-        bool result = await _menuService.UpdateModifierAsync(model);
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+        int userId = int.Parse(userIdClaim ?? "0");
+
+        bool result = await _menuService.UpdateModifierAsync(model, userId);
         if (result)
         {
             return Json(new { success = true });

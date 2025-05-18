@@ -14,5 +14,5 @@ public class ResetPasswordViewModel
     [Compare("NewPassword", ErrorMessage = "Passwords do not match")]
     public string ConfirmPassword { get; set; } = null!;
 
-    public string? Token { get; set; }
+    public string Token { get; set; } = null!;
 }

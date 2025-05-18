@@ -56,16 +56,21 @@ public class TableAndSectionService : ITableAndSectionService
     }
 
 
-    public async Task<Section> AddSectionAsync(string name, string description)
+    public async Task<Section> AddSectionAsync(SectionsViewModal modal, int UserId)
     {
 
-        Section? existingSection = await _tableAndSectionRepository.GetSectionByNameAsync(name.Trim());
+        Section? existingSection = await _tableAndSectionRepository.GetSectionByNameAsync(modal.Name.Trim());
 
         if (existingSection != null)
         {
             return null;
         }
-        Section? section = new() { Name = name, Description = description };
+        Section? section = new()
+        {
+            Name = modal.Name,
+            Description = modal.Description,
+            Createdby = UserId
+        };
 
         return await _tableAndSectionRepository.AddSectionAsync(section);
     }
@@ -81,9 +86,9 @@ public class TableAndSectionService : ITableAndSectionService
         return await _tableAndSectionRepository.GetSectionByIdAsync(id);
     }
 
-    public async Task<bool> UpdateSectionAsync(SectionsViewModal section)
+    public async Task<bool> UpdateSectionAsync(SectionsViewModal section, int UserId)
     {
-        return await _tableAndSectionRepository.UpdateSectionAsync(section);
+        return await _tableAndSectionRepository.UpdateSectionAsync(section, UserId);
     }
 
     public async Task<bool> SoftDeleteSectionAsync(int id)
@@ -91,7 +96,7 @@ public class TableAndSectionService : ITableAndSectionService
         return await _tableAndSectionRepository.SoftDeleteSectionAsync(id);
     }
 
-    public async Task<bool> AddTableAsync(TableViewModel model)
+    public async Task<bool> AddTableAsync(TableViewModel model, int UserId)
     {
         Table? newTable = new()
         {
@@ -99,7 +104,8 @@ public class TableAndSectionService : ITableAndSectionService
             Capacity = model.Capacity,
             Status = model.Status,
             Sectionid = model.SectionId,
-            Isdeleted = model.Isdeleted
+            Isdeleted = model.Isdeleted,
+            Createdby = UserId
 
         };
 
@@ -117,7 +123,7 @@ public class TableAndSectionService : ITableAndSectionService
         return table != null ? new TableViewModel { Name = table.Name, Id = table.Id } : null;
     }
 
-    public async Task<bool> UpdateTableAsync(TableViewModel model)
+    public async Task<bool> UpdateTableAsync(TableViewModel model, int UserId)
     {
         Table? table = await _tableAndSectionRepository.GetTableByIdForEdit(model.Id);
         if (table == null) return false;
@@ -126,6 +132,8 @@ public class TableAndSectionService : ITableAndSectionService
         table.Sectionid = model.SectionId;
         table.Capacity = model.Capacity;
         table.Status = model.Status;
+        table.Updatedat = DateTime.Now;
+        table.Updatedby = UserId;
 
         return await _tableAndSectionRepository.UpdateTableAsync(table);
     }

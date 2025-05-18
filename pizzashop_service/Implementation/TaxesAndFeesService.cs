@@ -51,7 +51,7 @@ public class TaxesAndFeesService : ITaxesAndFeesService
     }
 
 
-    public async Task<bool> AddTaxAsync(TaxsAndFeesViewModel model)
+    public async Task<bool> AddTaxAsync(TaxsAndFeesViewModel model, int UserId)
     {
 
         Taxesandfee? tax = new()
@@ -61,7 +61,8 @@ public class TaxesAndFeesService : ITaxesAndFeesService
             Type = model.Type,
             Value = model.Value,
             Isenabled = model.IsEnabled,
-            Isdefault = model.IsDefault
+            Isdefault = model.IsDefault,
+            Createdby = UserId
         };
 
         return await _taxesAndFeesRepository.AddTaxAsync(tax);
@@ -77,7 +78,7 @@ public class TaxesAndFeesService : ITaxesAndFeesService
         return await _taxesAndFeesRepository.SoftDeleteTaxAsync(id);
     }
 
-    public async Task<bool> UpdateTaxAsync(TaxsAndFeesViewModel model)
+    public async Task<bool> UpdateTaxAsync(TaxsAndFeesViewModel model, int UserId)
     {
         Taxesandfee? tax = await _taxesAndFeesRepository.GetTaxByIdForEdit(model.Id);
         if (tax == null) return false;
@@ -87,6 +88,8 @@ public class TaxesAndFeesService : ITaxesAndFeesService
         tax.Value = model.Value;
         tax.Isenabled = model.IsEnabled;
         tax.Isdefault = model.IsDefault;
+        tax.Updatedat = DateTime.Now;
+        tax.Updatedby = UserId;
 
         return await _taxesAndFeesRepository.UpdateTaxesAsync(tax);
     }

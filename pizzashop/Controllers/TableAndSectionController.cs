@@ -72,7 +72,10 @@ public class TableAndSectionController : Controller
             return Json(new { success = false, message = "Section name is required" });
         }
 
-        var section = await _tableAndSectionService.AddSectionAsync(model.Name, model.Description);
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+        int userId = int.Parse(userIdClaim ?? "0");
+
+        var section = await _tableAndSectionService.AddSectionAsync(model, userId);
 
         if (section == null)
         {
@@ -107,6 +110,7 @@ public class TableAndSectionController : Controller
             return Json(new { success = false, message = "A Section with this name already exists." });
         }
         SectionsViewModal? existingSection = await _tableAndSectionService.GetSectionById(model.Id);
+
         if (existingSection == null)
         {
             return Json(new { success = false, message = "Section not found." });
@@ -115,7 +119,11 @@ public class TableAndSectionController : Controller
         {
             return Json(new { success = false, message = "No changes detected." });
         }
-        bool result = await _tableAndSectionService.UpdateSectionAsync(model);
+
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+        int userId = int.Parse(userIdClaim ?? "0");
+
+        bool result = await _tableAndSectionService.UpdateSectionAsync(model, userId);
         if (result)
         {
             return Ok(new { success = true, message = "Section updated successfully." });
@@ -148,7 +156,10 @@ public class TableAndSectionController : Controller
             return Json(new { success = false, message = "A table with this name already exists." });
         }
 
-        bool result = await _tableAndSectionService.AddTableAsync(model);
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+        int userId = int.Parse(userIdClaim ?? "0");
+
+        bool result = await _tableAndSectionService.AddTableAsync(model, userId);
 
         if (result)
         {
@@ -210,7 +221,10 @@ public class TableAndSectionController : Controller
             return Json(new { success = false, message = "No changes detected." });
         }
 
-        bool result = await _tableAndSectionService.UpdateTableAsync(model);
+        var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value;
+        int userId = int.Parse(userIdClaim ?? "0");
+
+        bool result = await _tableAndSectionService.UpdateTableAsync(model, userId);
 
         if (!result)
         {

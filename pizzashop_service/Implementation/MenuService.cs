@@ -205,11 +205,11 @@ public class MenuService : IMenuService
         }
     }
 
-    public async Task<bool> AddItemAsync(ItemViewModel model)
+    public async Task<bool> AddItemAsync(ItemViewModel model,int UserId)
     {
         try
         {
-            MenuItem? newItem = new MenuItem
+            MenuItem? newItem = new()
             {
                 Name = model.Name,
                 Categoryid = model.Categoryid,
@@ -222,7 +222,8 @@ public class MenuService : IMenuService
                 TaxPercentage = model.TaxPercentage,
                 ShortCode = model.ShortCode,
                 Description = model.Description,
-                ItemImage = model.ItemImagePath
+                ItemImage = model.ItemImagePath,
+                CreatedBy = UserId
             };
 
             bool itemAdded = await _menuRepository.AddItemAsync(newItem);
@@ -248,7 +249,7 @@ public class MenuService : IMenuService
         }
     }
 
-    public async Task<bool> UpdateItemAsync(ItemViewModel model, int id)
+    public async Task<bool> UpdateItemAsync(ItemViewModel model, int id, int userId)
     {
         try
         {
@@ -315,6 +316,7 @@ public class MenuService : IMenuService
                 item.ShortCode = model.ShortCode;
                 item.Description = model.Description;
                 item.ItemImage = model.ItemImagePath;
+                item.UpdatedBy = userId;
 
                 bool itemUpdated = await _menuRepository.UpdateItemAsync(item);
                 if (!itemUpdated) return false;
@@ -542,7 +544,7 @@ public class MenuService : IMenuService
         }
     }
 
-    public async Task<bool> AddModifierGroup(ModifierGroupViewModel model)
+    public async Task<bool> AddModifierGroup(ModifierGroupViewModel model, int UserId)
     {
         try
         {
@@ -551,10 +553,11 @@ public class MenuService : IMenuService
                 return false;
             }
 
-            Modifiergroup? modifierGroup = new Modifiergroup
+            Modifiergroup? modifierGroup = new()
             {
                 Name = model.Name,
-                Description = model.Description
+                Description = model.Description,
+                Createdby = UserId
             };
 
             return await _menuRepository.AddModifierGroup(modifierGroup, model.ModifierIds);
@@ -616,7 +619,7 @@ public class MenuService : IMenuService
         }
     }
 
-    public async Task<bool> UpdateModifierGroup(ModifierGroupViewModel model)
+    public async Task<bool> UpdateModifierGroup(ModifierGroupViewModel model, int UserId)
     {
         try
         {
@@ -634,7 +637,7 @@ public class MenuService : IMenuService
                 return false;
             }
 
-            return await _menuRepository.UpdateModifierGroup(model);
+            return await _menuRepository.UpdateModifierGroup(model,UserId);
         }
         catch (Exception ex)
         {
@@ -642,7 +645,7 @@ public class MenuService : IMenuService
         }
     }
 
-    public async Task<bool> AddModifierAsync(ModifierViewModel model)
+    public async Task<bool> AddModifierAsync(ModifierViewModel model, int UserId)
     {
         try
         {
@@ -653,6 +656,7 @@ public class MenuService : IMenuService
                 Unittype = model.Unittype,
                 Quantity = model.Quantity,
                 Description = model.Description,
+                Createdby = UserId,
                 Isdeleted = false
             };
 
@@ -697,7 +701,7 @@ public class MenuService : IMenuService
         }
     }
 
-    public async Task<bool> UpdateModifierAsync(ModifierViewModel model)
+    public async Task<bool> UpdateModifierAsync(ModifierViewModel model,int UserId)
     {
         try
         {
@@ -722,6 +726,8 @@ public class MenuService : IMenuService
                 modifier.Quantity = model.Quantity;
                 modifier.Unittype = model.Unittype;
                 modifier.Description = model.Description;
+                modifier.Updatedat = DateTime.Now;
+                modifier.Updatedby = UserId;
                 isModified = true;
             }
 

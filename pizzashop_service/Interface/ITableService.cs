@@ -11,7 +11,7 @@ public interface ITableService
 
     Task<List<OrderAppSectionViewModel>> GetAllSectionsAsync();
 
-    Task<(bool IsSuccess, string Message)> AddWaitingTokenAsync(WaitingTokenViewModel waitingTokenVm);
+     Task<(bool IsSuccess, string Message)> AddWaitingTokenAsync(WaitingTokenViewModel waitingTokenVm, int UserId);
 
     Task<List<WaitingTokenViewModel>> GetWaitingTokens(int sectionId);
 
@@ -19,7 +19,7 @@ public interface ITableService
 
     Task<CustomerViewModel?> GetCustomerByEmail(string email);
 
-    Task<(bool IsSuccess, string Message)> AssignTablesAsync(AssignTableRequestViewModel model);
+    Task<(bool IsSuccess, string Message)> AssignTablesAsync(AssignTableRequestViewModel model, int UserId);
 
     Task<int?> GetOrderIdByTableIdAsync(int tableId);
 

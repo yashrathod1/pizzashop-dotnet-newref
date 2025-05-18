@@ -9,22 +9,22 @@ public interface ITableAndSectionService
 
     Task<PagedResult<TableViewModel>> GetTableBySectionAsync(TablePaginationViewModel model);
 
-    Task<Section> AddSectionAsync(string name, string description);
+    Task<Section> AddSectionAsync(SectionsViewModal modal, int UserId);
 
     Task<SectionsViewModal> GetSectionById(int id);
-    Task<bool> UpdateSectionAsync(SectionsViewModal section);
+    Task<bool> UpdateSectionAsync(SectionsViewModal section, int UserId);
 
     Task<SectionsViewModal?> GetSectionByNameAsync(string name);
 
     Task<bool> SoftDeleteSectionAsync(int id);
 
-    Task<bool> AddTableAsync(TableViewModel model);
+    Task<bool> AddTableAsync(TableViewModel model, int UserId);
 
     Task<TableViewModel> GetTableById(int id);
 
     Task<TableViewModel?> GetTableByNameAsync(string name);
 
-    Task<bool> UpdateTableAsync(TableViewModel model);
+    Task<bool> UpdateTableAsync(TableViewModel model, int UserId);
 
     Task<bool> SoftDeleteTableAsync(int id);
 
